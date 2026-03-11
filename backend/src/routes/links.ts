@@ -1,9 +1,36 @@
 import express from "express";
+import {customAlphabet} from "nanoid";
+import Link from "../models/Link";
 
 const router = express.Router();
 
+const nanoid = customAlphabet("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 6);
+
 router.post("/", async (req, res) => {
-    res.send("POST /links works");
+    const { url } = req.body;
+
+    if (!url) {
+        return res.status(400).json({ error: "URL doesn't exist" });
+    }
+
+    const shortUrl = nanoid();
+
+    try {
+        const newLink = new Link({
+            originalUrl: url,
+            shortUrl: shortUrl
+        });
+
+        await newLink.save();
+
+        res.json({
+            id: newLink._id,
+            shortUrl: newLink.shortUrl,
+            originalUrl: newLink.originalUrl
+        });
+    } catch (error) {
+        res.status(500).json({ error: "Error saving to database" });
+    }
 });
 
 router.get("/:shortUrl", async (req, res) => {
