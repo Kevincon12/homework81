@@ -34,7 +34,19 @@ router.post("/", async (req, res) => {
 });
 
 router.get("/:shortUrl", async (req, res) => {
-    res.send(`Redirect for ${req.params.shortUrl}`);
+    const { shortUrl } = req.params;
+
+    try {
+        const link = await Link.findOne({ shortUrl });
+
+        if (!link) {
+            return res.status(404).json({ error: "Link not found" });
+        }
+
+        res.redirect(301, link.originalUrl);
+    } catch (error) {
+        res.status(500).json({ error: "Server error" });
+    }
 });
 
 export default router;
